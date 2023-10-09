@@ -55,9 +55,9 @@ public class Main {
      */
     public static void marathonDifficultyHelper() {
         // Get required info from input2.txt.
-        int desiredAmountOfRunners = -1;
-        int finishTime = -1;
-        ArrayList<Integer> runnerTimes = new ArrayList<Integer>();
+        int desiredAmountOfRunners;
+        int finishTime;
+        ArrayList<Integer> runnerTimes = new ArrayList<>();
 
         try {
             File inputFile = new File("./InputFiles/input2.txt");
