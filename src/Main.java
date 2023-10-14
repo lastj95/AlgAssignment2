@@ -26,6 +26,7 @@ public class Main {
                 System.out.println("Error: Valid input not given.");
             }
         }
+        System.out.println();
 
         switch (alg) {
             case 2:
@@ -35,14 +36,14 @@ public class Main {
                 // TODO: Problem 3 alg goes here.
                 break;
             case 4:
-                // TODO: Problem 4 alg goes here.
+                marathonWaterHelper();
                 break;
             default:
                 marathonDifficultyHelper();
                 System.out.println();
                 // TODO: Problem 3 alg goes here.
                 System.out.println();
-                // TODO: Problem 4 alg goes here.
+                marathonWaterHelper();
                 System.out.println();
                 break;
         }
@@ -120,4 +121,100 @@ public class Main {
             }
         }
     }
+
+    /*
+     * Grabs input from input4.txt in order to obtain the amount of water stops per runner, so that said data can be
+     * sent down to a recursive function to determine the optimal amount of water and where in the array this number
+     * was derived from. This is then outputted to the user.
+     */
+    public static void marathonWaterHelper() {
+        ArrayList<Integer> waterStopsPerRunner = new ArrayList<>();
+
+        // Get all water stops into array.
+        try {
+            File inputFile = new File("./InputFiles/input4.txt");
+            Scanner fileIn = new Scanner(inputFile);
+            fileIn.useDelimiter(",");
+
+            while (fileIn.hasNext()) {
+                String waterStops = fileIn.next();
+                waterStopsPerRunner.add(Integer.parseInt(waterStops));
+            }
+
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
+        // Get results recursively.
+        int[] results = marathonWater(waterStopsPerRunner, 0, waterStopsPerRunner.size() - 1);
+
+        // Print out results.
+        System.out.println("Amount of water: " + results[0] + "\nStart point in array: " + results[1]
+                            + "\nEnd point in array: " + results[2]);
+    }
+
+    /*
+     * Recursively determines the optimal amount of water and where in the array this number is derived from.
+     */
+    public static int[] marathonWater(ArrayList<Integer> waterStopsPerRunner, int start, int end) {
+        if (start == end) {
+            return new int[]{waterStopsPerRunner.get(start), start, end};
+        } else {
+            // Get the best results on the left and right hand sides.
+            int mid = start + ((end - start) / 2);
+            int[] leftBest = marathonWater(waterStopsPerRunner, start, mid);
+            int[] rightBest = marathonWater(waterStopsPerRunner, mid + 1, end);
+
+            // Get the best section between the two sides on their own.
+            int[] bestOverall;
+            if ((leftBest[0] > rightBest[0])) {
+                bestOverall = leftBest;
+            } else {
+                bestOverall = rightBest;
+            }
+
+            // Look at section crossing between two sides, adding the greatest element bordering the "cross-section"
+            // each time
+            int leftBound = mid;
+            int rightBound = mid + 1;
+            int minStops = Math.min(waterStopsPerRunner.get(leftBound), waterStopsPerRunner.get(rightBound));
+            int waterAmount = minStops * 2;
+            if (waterAmount > bestOverall[0]) {
+                bestOverall = new int[]{waterAmount, leftBound, rightBound};
+            }
+
+            while (leftBound > start || rightBound < end) {
+                int newIndex;
+                // Case where either side can still be checked.
+                if (leftBound > start && rightBound < end) {
+                    if (waterStopsPerRunner.get(leftBound - 1) > waterStopsPerRunner.get(rightBound + 1)) {
+                        leftBound--;
+                        newIndex = leftBound;
+                    } else {
+                        rightBound++;
+                        newIndex = rightBound;
+                    }
+                // Case where only the left side can be checked (reached "end" on right side)
+                } else if (leftBound > start) {
+                    leftBound--;
+                    newIndex = leftBound;
+                // Case where only the right side can be checked (reached "start" on left side)
+                } else {
+                    rightBound++;
+                    newIndex = rightBound;
+                }
+
+                // Update the minimum number of stops taken by each runner in the cross-section being checked.
+                minStops = Math.min(minStops, waterStopsPerRunner.get(newIndex));
+                waterAmount = minStops * (rightBound - leftBound + 1);
+                if (waterAmount > bestOverall[0]) {
+                    bestOverall = new int[]{waterAmount, leftBound, rightBound};
+                }
+            }
+
+            // After the above loop the best overall section to base our water count on has been found.
+            return bestOverall;
+        }
+    }
+
 }
