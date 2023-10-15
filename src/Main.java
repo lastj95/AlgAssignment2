@@ -1,7 +1,6 @@
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Scanner;
+import java.util.*;
 
 /*
  * Program Authors: Matthew Bertello, James Last, Adeel Sultan
@@ -128,7 +127,7 @@ public class Main {
      * largest amount of energy).
      */
     public static void compoundComparisonHelper() {
-        ArrayList<int[]> marsCompounds = new ArrayList<>();
+        ArrayList<Integer[]> marsCompounds = new ArrayList<>();
 
         // Get all compounds from file into array.
         try {
@@ -140,25 +139,104 @@ public class Main {
                 Scanner valueParser = new Scanner(compound);
                 valueParser.useDelimiter(",");
 
+                // With this, compound id is index 0, carbon is index 1, nitrogen is 2, and oxygen is 3.
                 int compoundID = Integer.parseInt(valueParser.next());
                 int carbonValue = Integer.parseInt(valueParser.next());
                 int nitrogenValue = Integer.parseInt(valueParser.next());
                 int oxygenValue = Integer.parseInt(valueParser.next());
 
-                marsCompounds.add(new int[]{compoundID, carbonValue, nitrogenValue, oxygenValue});
+                marsCompounds.add(new Integer[]{compoundID, carbonValue, nitrogenValue, oxygenValue});
             }
 
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
 
-        CompoundCombination bestCompounds = new CompoundCombination(-1, -2, Double.MAX_VALUE);
+        // Sort list of compounds by their carbon value.
+        marsCompounds.sort(Comparator.comparing(compound -> compound[1]));
 
-        // TODO: Put recursive call here!!!
+        CompoundCombination bestCompounds = compoundComparison(marsCompounds, 0, marsCompounds.size() - 1);
 
+        // Print results.
         System.out.println("The best compounds to combine are of ID numbers " + bestCompounds.id1 + " and " +
                             bestCompounds.id2 + ", with the resulting energy score being " + bestCompounds.energyScore
                             + ".");
+    }
+
+    /*
+     * Recursively obtain the pair of compounds with the lowest energy score. This problem is essentially like figuring
+     * the closest pair of points in 3D space, and is thus based upon our understanding of how such an algorithm works
+     * based on the limited amount of information we could gather.
+     */
+    public static CompoundCombination compoundComparison(ArrayList<Integer[]> marsCompounds, int start, int end) {
+        // Base case, if amount of compounds to check is 3 or less, then we just look through all combinations.
+        // This MUST be three in order to avoid only comparing a compound with itself.
+        if (end - start <= 2) {
+            CompoundCombination bestCompounds = new CompoundCombination(-1, -2, Double.MAX_VALUE);
+
+            for (int i = start; i <= end; i++) {
+                for (int j = i + 1; j <= end; j++) {
+                    double energyScore = getEnergyScore(marsCompounds.get(i), marsCompounds.get(j));
+                    if (energyScore < bestCompounds.energyScore) {
+                        bestCompounds = new CompoundCombination(marsCompounds.get(i)[0], marsCompounds.get(j)[0],
+                                energyScore);
+                    }
+                }
+            }
+
+            return bestCompounds;
+        }
+        // Recursive case.
+        else {
+            // Recursively look at the left half and right half of points.
+            int mid = start + ((end - start) / 2);
+            CompoundCombination leftBest = compoundComparison(marsCompounds, start, mid);
+            CompoundCombination rightBest = compoundComparison(marsCompounds, mid + 1, end);
+
+            // Determine best pair of compounds from each half.
+            CompoundCombination bestCompounds;
+            if (leftBest.energyScore < rightBest.energyScore) {
+                bestCompounds = leftBest;
+            } else {
+                bestCompounds = rightBest;
+            }
+
+            // Get the boundaries of which points to check near the middle.
+            int midCarbon = marsCompounds.get(mid)[1];
+            double delta = bestCompounds.energyScore;
+            double minCarbon = midCarbon - delta;
+            double maxCarbon = midCarbon + delta;
+
+            // Get list of compounds within this range of carbon and sort by nitrogen value.
+            ArrayList<Integer[]> compoundsToCheck = new ArrayList<>(marsCompounds.subList(start, end + 1));
+
+            compoundsToCheck.removeIf(compound -> compound[1] < minCarbon || compound[1] > maxCarbon);
+            compoundsToCheck.sort(Comparator.comparing(compound -> compound[2]));
+
+            // Check each compound in the list to the next 28 compounds. A lower number may be able to be used and still
+            // achieve the correct answer, but we couldn't seek out a specific mathematical proof for the closest point
+            // problem in three dimensions.
+            for (int i = 0; i < compoundsToCheck.size(); i++) {
+                for (int j = i + 1; j < compoundsToCheck.size() && j < i + 29; j++) {
+                    double energyScore = getEnergyScore(marsCompounds.get(i), marsCompounds.get(j));
+                    if (energyScore < bestCompounds.energyScore) {
+                        bestCompounds = new CompoundCombination(marsCompounds.get(i)[0], marsCompounds.get(j)[0],
+                                energyScore);
+                    }
+                }
+            }
+
+            // Return the pair of compounds with the lowest energy score.
+            return bestCompounds;
+        }
+    }
+
+    /*
+     * Gets the energy score of two given compounds.
+     */
+    public static double getEnergyScore (Integer[] compound1, Integer[] compound2) {
+        return Math.sqrt(Math.pow(compound1[1] - compound2[1], 2) + Math.pow(compound1[2] - compound2[2], 2) +
+                         Math.pow(compound1[3] - compound2[3], 2));
     }
 
     /*
