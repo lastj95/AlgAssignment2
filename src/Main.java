@@ -33,7 +33,7 @@ public class Main {
                 marathonDifficultyHelper();
                 break;
             case 3:
-                // TODO: Problem 3 alg goes here.
+                compoundComparisonHelper();
                 break;
             case 4:
                 marathonWaterHelper();
@@ -41,7 +41,7 @@ public class Main {
             default:
                 marathonDifficultyHelper();
                 System.out.println();
-                // TODO: Problem 3 alg goes here.
+                compoundComparisonHelper();
                 System.out.println();
                 marathonWaterHelper();
                 System.out.println();
@@ -121,6 +121,63 @@ public class Main {
             }
         }
     }
+
+    /*
+     * Generates a list of Mars compounds with carbon, nitrogen, and oxygen values from a file input3.txt, and then
+     * calls a recursive method to determine what pair of compounds generates the lowest energy score (and thus the
+     * largest amount of energy).
+     */
+    public static void compoundComparisonHelper() {
+        ArrayList<int[]> marsCompounds = new ArrayList<>();
+
+        // Get all compounds from file into array.
+        try {
+            File inputFile = new File("./InputFiles/input3.txt");
+            Scanner fileIn = new Scanner(inputFile);
+
+            while (fileIn.hasNextLine()) {
+                String compound = fileIn.nextLine();
+                Scanner valueParser = new Scanner(compound);
+                valueParser.useDelimiter(",");
+
+                int compoundID = Integer.parseInt(valueParser.next());
+                int carbonValue = Integer.parseInt(valueParser.next());
+                int nitrogenValue = Integer.parseInt(valueParser.next());
+                int oxygenValue = Integer.parseInt(valueParser.next());
+
+                marsCompounds.add(new int[]{compoundID, carbonValue, nitrogenValue, oxygenValue});
+            }
+
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
+        CompoundCombination bestCompounds = new CompoundCombination(-1, -2, Double.MAX_VALUE);
+
+        // TODO: Put recursive call here!!!
+
+        System.out.println("The best compounds to combine are of ID numbers " + bestCompounds.id1 + " and " +
+                            bestCompounds.id2 + ", with the resulting energy score being " + bestCompounds.energyScore
+                            + ".");
+    }
+
+    /*
+     * Class for two compounds being compared, making for easy tracking of the lowest energy score (for the purposes
+     * of the recursive method) and the two compounds' IDs (for the purpose of reporting to the user at the end of the
+     * helper method).
+     */
+    public static class CompoundCombination {
+        int id1;
+        int id2;
+        double energyScore;
+
+        CompoundCombination(int id1, int id2, double energyScore) {
+            this.id1 = id1;
+            this.id2 = id2;
+            this.energyScore = energyScore;
+        }
+    }
+
 
     /*
      * Grabs input from input4.txt in order to obtain the amount of water stops per runner, so that said data can be
