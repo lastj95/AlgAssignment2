@@ -218,9 +218,9 @@ public class Main {
             // problem in three dimensions.
             for (int i = 0; i < compoundsToCheck.size(); i++) {
                 for (int j = i + 1; j < compoundsToCheck.size() && j < i + 29; j++) {
-                    double energyScore = getEnergyScore(marsCompounds.get(i), marsCompounds.get(j));
+                    double energyScore = getEnergyScore(compoundsToCheck.get(i), compoundsToCheck.get(j));
                     if (energyScore < bestCompounds.energyScore) {
-                        bestCompounds = new CompoundCombination(marsCompounds.get(i)[0], marsCompounds.get(j)[0],
+                        bestCompounds = new CompoundCombination(compoundsToCheck.get(i)[0], compoundsToCheck.get(j)[0],
                                 energyScore);
                     }
                 }
