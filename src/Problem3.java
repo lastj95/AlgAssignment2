@@ -60,9 +60,9 @@ public class Problem3 {
         PointPair bestPair = null;
 
         if (leftPair == null) {
-            return rightPair;
+            bestPair = rightPair;
         } else if (rightPair == null) {
-            return leftPair;
+            bestPair = leftPair;
         } else {
             if (leftPair.distance < rightPair.distance) {
                 bestPair = leftPair;
@@ -83,16 +83,7 @@ public class Problem3 {
             }
         }
 
-        // Sort the center points by y
-        centerPoints.sort((p1, p2) -> p1.y - p2.y);
-
-        PointPair bestCross = SearchStrips(centerPoints, bestPair);
-
-        if (bestCross != null) {
-            return bestCross;
-        } else {
-            return bestPair;
-        }
+        return SearchStrips(centerPoints, bestPair);
     }
 
     static public PointPair SearchStrips(ArrayList<Point> points, PointPair bestPair) 
@@ -106,9 +97,18 @@ public class Problem3 {
         ArrayList<ArrayList<Point>> strips = new ArrayList<ArrayList<Point>>();
 
         // Get the range of y values
-        float minY = points.get(0).y;
-        float maxY = points.get(points.size() - 1).y;
+        float minY = Float.MAX_VALUE;
+        float maxY = Float.MIN_VALUE;
+        for (Point point : points) {
+            if (point.y < minY) {
+                minY = point.y;
+            }
+            if (point.y > maxY) {
+                maxY = point.y;
+            }
+        }
         float yRange = maxY - minY;
+        points.sort((p1, p2) -> p1.z - p2.z);
 
         // Get the number of strips
         int numStrips = (int) Math.ceil(yRange / bestPair.distance);
@@ -121,11 +121,6 @@ public class Problem3 {
         for (Point point : points) {
             int stripIndex = (int) Math.floor((point.y - minY) / bestPair.distance);
             strips.get(stripIndex).add(point);
-        }
-
-        // Sort the strips by z
-        for (ArrayList<Point> strip : strips) {
-            strip.sort((p1, p2) -> p1.z - p2.z);
         }
 
         // Find the closest pair in the strips
