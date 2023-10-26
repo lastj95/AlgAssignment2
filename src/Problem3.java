@@ -119,7 +119,11 @@ public class Problem3 {
         }
 
         for (Point point : points) {
-            int stripIndex = (int) Math.floor((point.y - minY) / bestPair.distance);
+            float distance = point.y - minY;
+            int stripIndex = (int) Math.floor(distance / bestPair.distance);
+            if(distance % bestPair.distance == 0 && stripIndex > 0) {
+                stripIndex--;
+            }
             strips.get(stripIndex).add(point);
         }
 
